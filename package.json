@@ -1,0 +1,19 @@
+{
+  "name": "scraping",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "browser-sync start --server --files='./*.html, ./*.css'"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "browser-sync": "^2.26.7",
+    "child_process": "^1.0.2",
+    "fs-extra": "^9.0.0",
+    "path": "^0.12.7",
+    "puppeteer": "^3.1.0"
+  }
+}
