@@ -60,11 +60,14 @@ const paths = (() => {
 })();
 
 (async () => {
-    const browser = await puppeteer.launch({headless: false});
+    const browser = await puppeteer.launch();
     const l = paths.length;
 
-    // browserSync({server: "./"});
-    // browserSync.exit();
+    browserSync({
+        server: "./",
+        open: false
+    });
+    browserSync.exit();
 
     // execSync(`php -S ${localPath} -t ./`);
 
