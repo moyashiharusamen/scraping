@@ -1,14 +1,14 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs-extra');
-// const { execSync } = require('child_process');
-const browserSync = require("browser-sync");
+const { execSync } = require('child_process');
+const browserSync = require('browser-sync');
 
-browserSync({
-    server: "./"
-})
-
+const retry = (fn) => fn().catch(retry.bind(fn));
+const localPath = 'http://localhost:3000';
 const dirPath = path.resolve(__dirname, '.');
+const currentDir = path.basename(__dirname);
+const deletePathTarget = new RegExp(`/User.*?${currentDir}`);
 const exclusionDir = /(\/node_modules\/|\/_dev\/|\/includ(e|es)\/|^\.)/g;
 const fileType = {
     file: 'file',
@@ -60,11 +60,23 @@ const paths = (() => {
 })();
 
 (async () => {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({headless: false});
     const l = paths.length;
-    const page = await browser.newPage();
+
+    // browserSync({server: "./"});
+    // browserSync.exit();
+
+    // execSync(`php -S ${localPath} -t ./`);
 
     for (let i = 0; i < l; i++) {
-        await page.goto(paths[i]);
+        const replaceUrl = paths[i].replace(deletePathTarget, localPath);
+        const page = await browser.newPage();
+
+        console.log(replaceUrl);
+
+        await retry(() => page.goto('https://google.com'));
+        await page.close();
     }
-})();
+    
+    browser.close();
+})().catch(e => console.error('エラーだよ！！', e));
