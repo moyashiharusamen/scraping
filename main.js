@@ -67,7 +67,6 @@ const paths = (() => {
         server: "./",
         open: false
     });
-    browserSync.exit();
 
     // execSync(`php -S ${localPath} -t ./`);
 
@@ -75,11 +74,10 @@ const paths = (() => {
         const replaceUrl = paths[i].replace(deletePathTarget, localPath);
         const page = await browser.newPage();
 
-        console.log(replaceUrl);
-
-        await retry(() => page.goto('https://google.com'));
+        await retry(() => page.goto(replaceUrl));
         await page.close();
     }
-    
+
+    browserSync.exit();
     browser.close();
 })().catch(e => console.error('エラーだよ！！', e));
