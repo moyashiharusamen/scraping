@@ -75,6 +75,9 @@ const paths = (() => {
         const page = await browser.newPage();
 
         await retry(() => page.goto(replaceUrl));
+
+        const target = await page.$('a');
+
         await page.close();
     }
 
