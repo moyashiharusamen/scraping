@@ -1,7 +1,6 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs-extra');
-const { execSync } = require('child_process');
 const browserSync = require('browser-sync');
 
 const retry = (fn) => fn().catch(retry.bind(fn));
@@ -67,8 +66,6 @@ const paths = (() => {
         server: "./",
         open: false
     });
-
-    // execSync(`php -S ${localPath} -t ./`);
 
     for (let i = 0; i < l; i++) {
         const replaceUrl = paths[i].replace(deletePathTarget, localPath);
