@@ -59,6 +59,40 @@ const paths = (() => {
     });
 })();
 
+class CheckerLink {
+    constructor(browser, url) {
+        this.browser = browser;
+        this.url = url;
+        this.replaceUrl = url.replace(deletePathTarget, localPath);
+        this.errorCount = 0;
+    }
+
+    async run () {
+        await retry(() => this.browser.goto(this.replaceUrl));
+
+        const list = await this.browser.$$('a');
+        const listLength = list.length;
+        for (let i = 0; i < listLength; i++) {
+            const path = await (await list[i].getProperty('href')).jsonValue();
+
+            axios.get(path)
+                .then(res => {
+                    console.log(res.status);
+                })
+                .catch(error => {
+                    // console.log(error.config.url);
+                    // if (error.response) {
+                    //     console.log(error.response.status);
+                    // }
+                    // console.log('error!!!');
+                    this.errorCount++;
+                })
+        }
+
+        await this.browser.close();
+    }
+}
+
 (async () => {
     const browser = await puppeteer.launch();
     const l = paths.length;
@@ -69,14 +103,10 @@ const paths = (() => {
     });
 
     for (let i = 0; i < l; i++) {
-        const replaceUrl = paths[i].replace(deletePathTarget, localPath);
         const page = await browser.newPage();
 
-        await retry(() => page.goto(replaceUrl));
-
-        const target = await page.$('a');
-
-        await page.close();
+        const checkerLink = new CheckerLink(page, paths[i]);
+        await checkerLink.run();
     }
 
     browserSync.exit();
