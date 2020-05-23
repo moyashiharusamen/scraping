@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs-extra');
 const browserSync = require('browser-sync');
+const axios = require('axios');
 
 const retry = (fn) => fn().catch(retry.bind(fn));
 const localPath = 'http://localhost:3000';
