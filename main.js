@@ -90,7 +90,9 @@ const checkLink = async (browser, argUrl) => {
 
     if (errorCount === 0) return;
 
-    console.log(`ページ: ${replaceUrl}\n件数: ${errorCount} 件\n対象URL: ${innerErrorUrl.join(', ')}\n--------------------`);
+    console.log(
+        `\nページ: ${replaceUrl}\n件数: ${errorCount} 件\n対象URL: ${innerErrorUrl.join(', ')}\n\n--------------------`
+    );
 };
 
 (async () => {
