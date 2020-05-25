@@ -4,7 +4,6 @@ const fs = require('fs-extra');
 const browserSync = require('browser-sync');
 const axios = require('axios');
 
-const retry = (fn) => fn().catch(retry.bind(fn));
 const localPath = 'http://localhost:3000';
 const dirPath = path.resolve(__dirname, '.');
 const currentDir = path.basename(__dirname);
@@ -13,8 +12,9 @@ const exclusionDir = /(\/node_modules\/|\/_dev\/|\/includ(e|es)\/|^\.)/g;
 const fileType = {
     file: 'file',
     directory: 'directory'
-};
-const getFileType = (path) => {
+}
+const retry = fn => fn().catch(retry.bind(fn));
+const getFileType = path => {
     try {
         const stat = fs.statSync(path);
 
@@ -33,7 +33,7 @@ const getFileType = (path) => {
         return fileType.Unknown;
     }
 };
-const listFiles = (dirPath) => {
+const listFiles = dirPath => {
     const listArray = [];
     const paths = fs.readdirSync(dirPath);
 
@@ -59,39 +59,39 @@ const paths = (() => {
     });
 })();
 
-class CheckerLink {
-    constructor(browser, url) {
-        this.browser = browser;
-        this.url = url;
-        this.replaceUrl = url.replace(deletePathTarget, localPath);
-        this.errorCount = 0;
+const checkLink = async (browser, argUrl) => {
+    // 整形したパス
+    const replaceUrl = argUrl.replace(deletePathTarget, localPath);
+    // エラー時の URL を入れる配列
+    const innerErrorUrl = [];
+    // リンク切れを起こしているリンクの数
+    let errorCount = 0;
+    
+    try {
+        await retry(() => browser.goto(replaceUrl));
+    }
+    catch(e) {
+        console.log('ページアクセス時にエラーが発生しました');
     }
 
-    async run () {
-        await retry(() => this.browser.goto(this.replaceUrl));
+    const list = await browser.$$('a');
+    const l = list.length;
+    for (let i = 0; i < l; i++) {
+        const path = await (await list[i].getProperty('href')).jsonValue();
 
-        const list = await this.browser.$$('a');
-        const listLength = list.length;
-        for (let i = 0; i < listLength; i++) {
-            const path = await (await list[i].getProperty('href')).jsonValue();
-
-            axios.get(path)
-                .then(res => {
-                    console.log(res.status);
-                })
-                .catch(error => {
-                    // console.log(error.config.url);
-                    // if (error.response) {
-                    //     console.log(error.response.status);
-                    // }
-                    // console.log('error!!!');
-                    this.errorCount++;
-                })
-        }
-
-        await this.browser.close();
+        await axios.get(path)
+            .catch(error => {
+                errorCount++;
+                innerErrorUrl.push(error.config.url);
+            })
     }
-}
+
+    await browser.close();
+
+    if (errorCount === 0) return;
+
+    console.log(`ページ: ${replaceUrl}\n件数: ${errorCount} 件\n対象URL: ${innerErrorUrl.join(', ')}\n--------------------`);
+};
 
 (async () => {
     const browser = await puppeteer.launch();
@@ -104,9 +104,7 @@ class CheckerLink {
 
     for (let i = 0; i < l; i++) {
         const page = await browser.newPage();
-
-        const checkerLink = new CheckerLink(page, paths[i]);
-        await checkerLink.run();
+        await checkLink(page, paths[i]);
     }
 
     browserSync.exit();
